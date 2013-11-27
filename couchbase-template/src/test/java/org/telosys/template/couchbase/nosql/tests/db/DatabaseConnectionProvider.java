@@ -1,5 +1,6 @@
 package org.telosys.template.couchbase.nosql.tests.db;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -22,5 +23,7 @@ public interface DatabaseConnectionProvider {
 	Collection<String> getAllIDByType(String startKeyIdDoc);
 
 	Collection<String> executeQuery(String queryName,Properties parameters);
+	
+	void initDatabase() throws IOException;
 
 }

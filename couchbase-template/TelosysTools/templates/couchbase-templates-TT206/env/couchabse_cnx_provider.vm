@@ -5,9 +5,11 @@
 
 package ${target.javaPackageFromFolder($SRC)};
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +18,15 @@ import java.util.Properties;
 
 import net.spy.memcached.PersistTo;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import ${ROOT_PKG}.persistence.services.dao.common.QueryParameters;
 
 import com.couchbase.client.CouchbaseClient;
+import com.couchbase.client.protocol.views.DesignDocument;
 import com.couchbase.client.protocol.views.Query;
 import com.couchbase.client.protocol.views.View;
+import com.couchbase.client.protocol.views.ViewDesign;
 import com.couchbase.client.protocol.views.ViewResponse;
 import com.couchbase.client.protocol.views.ViewRow;
 
@@ -196,6 +202,53 @@ public class CouchbaseConnectionProvider implements DatabaseConnectionProvider{
 			}
 		}
 		return docs;
+	}
+
+	/**
+	 * Create or update all generated views.
+	 * @throws IOException 
+	 */
+	@Override
+	public void initDatabase() throws IOException {
+		// Get all view files
+		URL viewURL = getClass().getClassLoader().getResource("couchbase/views/");
+		System.out.println("URL views : " + viewURL.getPath());
+		File viewDir = FileUtils.toFile(viewURL);
+		if (viewDir.isDirectory()) {
+			String[] extensions = new String[] { "js" };
+			Collection<File> viewFiles = FileUtils.listFiles(viewDir, extensions, false);
+			System.out.println( viewFiles.size() + " view files found.");
+			// Get all views by file
+			for (File file : viewFiles) {
+				String[] viewDeclarations = StringUtils.substringsBetween(FileUtils.readFileToString(file),"startview","//endview");
+				System.out.println( viewDeclarations.length + " view declarations found on " + file.getName() + " file.");
+				for (int i = 0; i < viewDeclarations.length; i++) {
+					String[] lines = StringUtils.split(viewDeclarations[i],"\n");
+					String viewName = lines[0].trim();
+					String map = StringUtils.join(lines, "", 1, (lines.length));
+					this.createOrUpdateView(DESIGN_NAME_DOMAIN, viewName, map);
+				}
+			}
+		}
+	}
+	
+	private void createOrUpdateView(String designDocName, String viewName, String map) {
+		this.createOrUpdateView(designDocName, viewName, map, null);
+	}
+	
+	private void createOrUpdateView(String designDocName, String viewName, String map, String reduce) {
+		DesignDocument designDocument = this.getClient().getDesignDocument(designDocName);
+		if (designDocument == null) {
+			designDocument = new DesignDocument(designDocName);
+		}
+		ViewDesign viewDesign;
+		if (reduce != null) {
+			viewDesign = new ViewDesign(viewName,map,reduce);
+		} else {
+			viewDesign = new ViewDesign(viewName,map);
+		}
+		designDocument.getViews().add(viewDesign);
+		this.getClient().createDesignDoc(designDocument);
 	}
 
 }

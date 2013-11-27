@@ -1,6 +1,6 @@
 package org.telosys.template.couchbase.nosql.tests;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.telosys.template.couchbase.nosql.bean.Author;
 import org.telosys.template.couchbase.nosql.bean.Book;
 import org.telosys.template.couchbase.nosql.tests.db.CouchbaseConnectionProvider;
+import org.telosys.template.couchbase.nosql.tests.db.DatabaseConnectionProvider;
 
 public class TemplateTest {
 
@@ -73,6 +74,11 @@ public class TemplateTest {
 		assertEquals("Should persist no book doc", 0, bookPersistence.findAll().size());
 	}
 	
+	@Test
+	public void testCreateViews() throws Exception {
+		DatabaseConnectionProvider connectionProvider = new CouchbaseConnectionProvider();
+		connectionProvider.initDatabase();
+	}
 	//################################################################################################################
 	// PRIVATE METHODS
 	//################################################################################################################
