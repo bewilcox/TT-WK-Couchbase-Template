@@ -55,7 +55,7 @@ public class ${entity.name}Persistence extends DocumentPersistence<${entity.name
 	 */
 	@Override
 	public String getDocumentID(${entity.name} entity) {
-		return entity.getClass().getSimpleName() + ":" 
+		return entity.getClass().getSimpleName()  
 #foreach( $field in $entity.keyAttributes )
 #if ( $field.getter )  
 			+ ":" + entity.${field.getter}()#end

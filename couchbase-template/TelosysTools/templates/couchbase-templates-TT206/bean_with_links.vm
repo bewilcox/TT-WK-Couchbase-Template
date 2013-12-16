@@ -20,10 +20,6 @@ import java.io.Serializable;
 import $import;
 #end
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 #set($showImportslinkType = 0)
 #foreach( $link in $entity.selectedLinks )
 #if($link.isCardinalityOneToMany() || $link.isCardinalityManyToMany())
@@ -41,8 +37,6 @@ import java.util.List;
  * @author Telosys Tools Generator
  *
  */
-@XmlRootElement  // JAXB annotation for REST Web Services
-@XmlAccessorType(XmlAccessType.PROPERTY) // JAXB accessor = getter/setter pair
 public class $entity.name implements Serializable
 {
     private static final long serialVersionUID = 1L;

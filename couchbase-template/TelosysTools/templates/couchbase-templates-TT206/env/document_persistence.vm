@@ -11,9 +11,9 @@ import java.util.Collection;
 import java.util.Properties;
 
 import org.codehaus.jackson.map.DeserializationConfig.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
+import ${ROOT_PKG}.persistence.db.utils.JsonUtils;
 import ${ROOT_PKG}.persistence.db.DatabaseConnectionProvider;
 
 /**
@@ -25,12 +25,10 @@ import ${ROOT_PKG}.persistence.db.DatabaseConnectionProvider;
 public abstract class DocumentPersistence<T> {
 
 	private final DatabaseConnectionProvider connectionProvider;
-	private final ObjectMapper mapper;
 	
 	public DocumentPersistence(DatabaseConnectionProvider provider) {
 		super();
-		this.mapper = new ObjectMapper();
-		mapper.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		JsonUtils.getMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		this.connectionProvider = provider;
 	}
 
@@ -41,7 +39,7 @@ public abstract class DocumentPersistence<T> {
 			Collection<String> resultsDoc = this.connectionProvider.getAllDocByType(this.getGenericClass().getSimpleName());
 			for (String doc : resultsDoc) {
 				if(doc != null) {
-					entities.add(this.mapper.readValue(doc, this.getGenericClass()));
+					entities.add(JsonUtils.getMapper().readValue(doc, this.getGenericClass()));
 				}
 			}
 		} catch (Exception e) {
@@ -60,7 +58,7 @@ public abstract class DocumentPersistence<T> {
 
 	public T findById(String id)  {
 		try {
-			return this.mapper.readValue(
+			return JsonUtils.getMapper().readValue(
 					this.connectionProvider.getDocument(id),
 					this.getGenericClass());
 		} catch (Exception e) {
@@ -95,7 +93,7 @@ public abstract class DocumentPersistence<T> {
 			
 			Collection<String> docs =  this.connectionProvider.executeQuery(queryName, parameters);
 			for (String doc : docs) {
-				entities.add(this.mapper.readValue(doc, this.getGenericClass()));
+				entities.add(JsonUtils.getMapper().readValue(doc, this.getGenericClass()));
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("Error while executing query " 
@@ -115,7 +113,7 @@ public abstract class DocumentPersistence<T> {
 
 	private String convertAndAddTypeProperty(T entity) {
 		try {
-			ObjectNode jsonNode = (ObjectNode)this.mapper.readTree(this.mapper.writeValueAsString(entity));
+			ObjectNode jsonNode = (ObjectNode)JsonUtils.getMapper().readTree(JsonUtils.getMapper().writeValueAsString(entity));
 			jsonNode.put("__type", getGenericClass().getCanonicalName());
 			return jsonNode.toString();
 		} catch (Exception e) {
